@@ -13,6 +13,7 @@ from tqdm import trange
 from numpy.random import RandomState
 from sklearn import preprocessing
 from imblearn.over_sampling import ADASYN
+import os
 
 random.seed(1337)
 
@@ -380,18 +381,22 @@ def analisys_plot(x,y,x_axis='x_axis',y_axis='y_axis',title=None):
 
 def analysis(path,col,types):
     lst = [0] * len(types)
+    fst = [0] * len(types)
     df = pd.read_csv(path)
     for row in df.itertuples(index=True, name='Pandas'):
         if  row.stroke==1:
             for t in types:
-                #print(row[df.columns.get_loc(col)+1],t)
                 if row[df.columns.get_loc(col)+1]==t:
                     lst[types.index(t)]+=1
-    return lst
+        else:
+            for t in types:
+                if row[df.columns.get_loc(col)+1]==t:
+                    fst[types.index(t)]+=1
+    return [i / j for i, j in zip(lst, fst)]
 
 if __name__ == '__main__':
     
-    path = r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\kolokvijum.csv'
+    path = os.path.realpath(r'Neural_network\data\kolokvijum.csv')
     #pod a)
     #analysis(path)
     types_smokers = ['Smoker','Non Smoker','Former Smoker']
@@ -414,11 +419,7 @@ if __name__ == '__main__':
     residence_type_strokes = analysis(path,"Residence_type",['Urban','Rural'])
     analisys_plot(residence_type,residence_type_strokes,"Residence_type","Strokes","Strokes in correlation to residence type") 
     #pod b)
-    nn = NeuralNetwork()                     
-    
-    #col_list = ["gender", "age","hypertension","heart_disease","ever_married","work_type","Residence_type","bmi","avg_glucose_level","smoking_status"]
-    #k_ulazi = pd.read_csv(path,usecols=col_list)
-    #k_izlaz = pd.read_csv(path,usecols=["stroke"])
+    nn = NeuralNetwork()                        
     
     no_id = ["gender", "age","heart_disease","hypertension","ever_married","work_type","Residence_type","bmi","avg_glucose_level","smoking_status","stroke"]
     df = pd.read_csv(path,usecols=no_id)
@@ -430,18 +431,16 @@ if __name__ == '__main__':
     list.remove(5)
     
     df=concat(df,['gender','ever_married','Residence_type','work_type','smoking_status'])
-    df.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\in0.csv',index=False)
+    df.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\in0.csv'),index=False)
     #Oversampling
-    print(len(df.columns))
     X_resampled, y_resampled = ada.fit_resample(df.iloc[:,list], df['stroke'])
     df = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled)], axis=1)
-    df.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\in0.csv',index=False)
+    df.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\in0.csv'),index=False)
     #Deljenje podataka na test i training sa osiguranjem da se nalazi isti odnos 1 i 0 u test i training
     stroke1 = df[df["stroke"] == 1]
     stroke0 = df[df["stroke"] == 0]
     inputs_len = len(df.columns)-1
-    #stroke1.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\in1.csv',index=False)
-    #print(len(stroke1.columns),len(stroke0.columns),len(stroke1.index),len(stroke0.index))
+
     stroke1_ulazi = stroke1.drop('stroke', axis=1)
     stroke1_izlaz = stroke1["stroke"]
     stroke0_ulazi = stroke0.drop('stroke', axis=1)
@@ -458,29 +457,18 @@ if __name__ == '__main__':
     ktest_izlazi0=stroke0_izlaz.loc[~stroke0_izlaz.index.isin(ktrain_izlazi0.index)]
     ktrain_ulazi = pd.concat([ktrain_ulazi1,ktrain_ulazi0])
     ktrain_izlaz = pd.concat([ktrain_izlazi1,ktrain_izlazi0])
-    ktrain_ulazi.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\in.csv',index=False)
-    ktrain_izlaz.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\out.csv',index=False)
+    ktrain_ulazi.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\in.csv'),index=False)
+    ktrain_izlaz.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\out.csv'),index=False)
     ktest_ulazi= pd.concat([ktest_ulazi1,ktest_ulazi0])
     ktest_izlaz = pd.concat([ktest_izlazi1,ktest_izlazi0])
-    ktest_ulazi.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\test_in.csv',index=False)
-    ktest_izlaz.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\test_out.csv',index=False)
-    #k_ulazi.fillna(0,inplace=True)
-    #k_izlaz.fillna(0,inplace=True)
-    #k_ulazi = concat(k_ulazi,['gender','ever_married','Residence_type','work_type','smoking_status'])
-    #k_ulazi = normalize(k_ulazi)
-    #k_ulazi.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\in.csv',index=False)
-    #k_izlaz.to_csv(path_or_buf=r'C:\Users\Admin\Desktop\Dusan_Lekic_RA159-1028\data\out.csv',index=False)
-    #print(ktrain_izlaz.values.tolist())
+    ktest_ulazi.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\test_in.csv'),index=False)
+    ktest_izlaz.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\test_out.csv'),index=False)
+    
     nn.add(NeuralLayer(inputs_len, inputs_len, 'sigmoid'))
     nn.add(NeuralLayer(inputs_len, 10, 'tanh'))
     nn.add(NeuralLayer(10, 1, 'sigmoid'))
 
-    #ktrain_ulazi=k_ulazi.sample(frac=0.7, random_state=RandomState())
-    #ktrain_izlaz=k_izlaz.sample(frac=0.7, random_state=RandomState())
-    #ktest_ulazi=k_ulazi.loc[~k_ulazi.index.isin(ktrain_ulazi.index)]
-    #ktest_izlaz=k_izlaz.loc[~k_izlaz.index.isin(ktrain_izlaz.index)]
-
-    history = nn.fit(ktrain_ulazi.values.tolist(), extractDigits(ktrain_izlaz.values.tolist()), learning_rate=0.1, momentum=0.9, nb_epochs=30, shuffle=True, verbose=0)
+    history = nn.fit(ktrain_ulazi.values.tolist(), extractDigits(ktrain_izlaz.values.tolist()), learning_rate=0.01, momentum=0.99, nb_epochs=30, shuffle=True, verbose=0)
     pyplot.plot(history)
     pyplot.show()
     tp = tn= fp =fn = 0
