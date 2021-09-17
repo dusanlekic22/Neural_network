@@ -324,14 +324,15 @@ class NeuralNetwork(ComputationalNode):
             for x, y in zip(X, Y):
                 y_pred = self.forward(x)  # forward-pass da izracunamo izlaz
                 y_target = y  # zeljeni izlaz
-                grad = 0.0
+                grad = []
                 for p, t in zip(y_pred, y_target):
                     total_loss += 0.5 * (t-p) ** 2.  # funkcija greske je kvadratna greska
                     #total_loss +=self.CrossEntropy(p, t)
-                    grad+=-(t-p)  # gradijent funkcije greske u odnosu na izlaz
+                    #grad+=-(t-p)  # gradijent funkcije greske u odnosu na izlaz
+                    grad.append(-(t-p))
                     #print(grad)
                 # backward-pass da izracunamo gradijente tezina
-                self.backward([[grad]])
+                self.backward([grad])
                 # azuriranje tezina na osnovu izracunatih gradijenata i koraka "learning_rate"
                 self.update_weights(learning_rate, momentum)
                 
@@ -396,32 +397,34 @@ def analysis(path,col,types):
 
 if __name__ == '__main__':
     
-    path = os.path.realpath(r'Neural_network\data\kolokvijum.csv')
+    path = os.path.realpath(r'data\kolokvijum.csv')
     #pod a)
     #analysis(path)
-    types_smokers = ['Smoker','Non Smoker','Former Smoker']
-    smokers_strokes=analysis(path,"smoking_status",['smokes','never smoked','formerly smoked'])
-    analisys_plot(types_smokers,smokers_strokes,"Types of smokers","Strokes","Strokes in correlation to smoking history")
+    print('Exploratory data ?(y/n)')
+    if input()=='y':
+        types_smokers = ['Smoker','Non Smoker','Former Smoker']
+        smokers_strokes=analysis(path,"smoking_status",['smokes','never smoked','formerly smoked'])
+        analisys_plot(types_smokers,smokers_strokes,"Types of smokers","Strokes","Strokes in correlation to smoking history")
 
-    genders = ['Male','Female','Other']
-    genders_strokes = analysis(path,"gender",['Male','Female','Other'])
-    analisys_plot(genders,genders_strokes,"Genders","Strokes","Strokes in correlation to genders")
+        genders = ['Male','Female','Other']
+        genders_strokes = analysis(path,"gender",['Male','Female','Other'])
+        analisys_plot(genders,genders_strokes,"Genders","Strokes","Strokes in correlation to genders")
 
-    hypertension = ['Had hypertension',"Didn't have hypertension"]
-    hypertension_strokes = analysis(path,"hypertension",[1,0])
-    analisys_plot(hypertension,hypertension_strokes,"Hypertension","Strokes","Strokes in correlation to hypertension history")
+        hypertension = ['Had hypertension',"Didn't have hypertension"]
+        hypertension_strokes = analysis(path,"hypertension",[1,0])
+        analisys_plot(hypertension,hypertension_strokes,"Hypertension","Strokes","Strokes in correlation to hypertension history")
 
-    heart_disease = ['Had heart disease',"Didn't have heart disease"]
-    heart_disease_strokes = analysis(path,"heart_disease",[1,0])
-    analisys_plot(heart_disease,heart_disease_strokes,"Heart disease","Strokes","Strokes in correlation to heart disease history")
+        heart_disease = ['Had heart disease',"Didn't have heart disease"]
+        heart_disease_strokes = analysis(path,"heart_disease",[1,0])
+        analisys_plot(heart_disease,heart_disease_strokes,"Heart disease","Strokes","Strokes in correlation to heart disease history")
 
-    residence_type = ['Urban','Rural']
-    residence_type_strokes = analysis(path,"Residence_type",['Urban','Rural'])
-    analisys_plot(residence_type,residence_type_strokes,"Residence_type","Strokes","Strokes in correlation to residence type") 
+        residence_type = ['Urban','Rural']
+        residence_type_strokes = analysis(path,"Residence_type",['Urban','Rural'])
+        analisys_plot(residence_type,residence_type_strokes,"Residence_type","Strokes","Strokes in correlation to residence type") 
     #pod b)
     nn = NeuralNetwork()                        
-    
-    no_id = ["gender", "age","heart_disease","hypertension","ever_married","work_type","Residence_type","bmi","avg_glucose_level","smoking_status","stroke"]
+        
+    no_id = ["gender", "age","heart_disease","hypertension","ever_married","work_type","Residence_type","bmi","avg_glucose_level","smoking_status","stroke"]    
     df = pd.read_csv(path,usecols=no_id)
     df.fillna(0,inplace=True)
     ada = ADASYN()
@@ -431,11 +434,11 @@ if __name__ == '__main__':
     list.remove(5)
     
     df=concat(df,['gender','ever_married','Residence_type','work_type','smoking_status'])
-    df.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\in0.csv'),index=False)
+    df.to_csv(path_or_buf=os.path.realpath(r'data\in0.csv'),index=False)
     #Oversampling
     X_resampled, y_resampled = ada.fit_resample(df.iloc[:,list], df['stroke'])
     df = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled)], axis=1)
-    df.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\in0.csv'),index=False)
+    df.to_csv(path_or_buf=os.path.realpath(r'data\in0.csv'),index=False)
     #Deljenje podataka na test i training sa osiguranjem da se nalazi isti odnos 1 i 0 u test i training
     stroke1 = df[df["stroke"] == 1]
     stroke0 = df[df["stroke"] == 0]
@@ -457,21 +460,21 @@ if __name__ == '__main__':
     ktest_izlazi0=stroke0_izlaz.loc[~stroke0_izlaz.index.isin(ktrain_izlazi0.index)]
     ktrain_ulazi = pd.concat([ktrain_ulazi1,ktrain_ulazi0])
     ktrain_izlaz = pd.concat([ktrain_izlazi1,ktrain_izlazi0])
-    ktrain_ulazi.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\in.csv'),index=False)
-    ktrain_izlaz.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\out.csv'),index=False)
+    ktrain_ulazi.to_csv(path_or_buf=os.path.realpath(r'data\in.csv'),index=False)
+    ktrain_izlaz.to_csv(path_or_buf=os.path.realpath(r'data\out.csv'),index=False)
     ktest_ulazi= pd.concat([ktest_ulazi1,ktest_ulazi0])
     ktest_izlaz = pd.concat([ktest_izlazi1,ktest_izlazi0])
-    ktest_ulazi.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\test_in.csv'),index=False)
-    ktest_izlaz.to_csv(path_or_buf=os.path.realpath(r'Neural_network\data\test_out.csv'),index=False)
+    ktest_ulazi.to_csv(path_or_buf=os.path.realpath(r'data\test_in.csv'),index=False)
+    ktest_izlaz.to_csv(path_or_buf=os.path.realpath(r'data\test_out.csv'),index=False)
     
     nn.add(NeuralLayer(inputs_len, inputs_len, 'sigmoid'))
-    nn.add(NeuralLayer(inputs_len, 10, 'tanh'))
+    nn.add(NeuralLayer(inputs_len, 10, 'sigmoid'))
     nn.add(NeuralLayer(10, 1, 'sigmoid'))
 
-    history = nn.fit(ktrain_ulazi.values.tolist(), extractDigits(ktrain_izlaz.values.tolist()), learning_rate=0.01, momentum=0.99, nb_epochs=30, shuffle=True, verbose=0)
+    history = nn.fit(ktrain_ulazi.values.tolist(), extractDigits(ktrain_izlaz.values.tolist()), learning_rate=0.01, momentum=0.99, nb_epochs=10, shuffle=True, verbose=0)
     pyplot.plot(history)
     pyplot.show()
-    tp = tn= fp =fn = 0
+    tp = tn = fp = fn = 0
     accuracy_plot = []
     test_X = ktest_ulazi.values.tolist()
     test_Y = ktest_izlaz.values.tolist()
